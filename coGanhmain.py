@@ -3,7 +3,7 @@ Handling user input and display current GameState object.
 """
 
 import pygame as p
-import CoGanhEngine
+import CoGanhEngine, SmartMoveFinder
 
 WIDTH = HEIGHT = 600
 BORDER = 44
@@ -46,39 +46,44 @@ def main():
     validMoves = gs.getValidMoves()
     moveMade = False  # Flag var for when a move is made
     gameOver = False
+    playerOne = True #If human playing xanh, this will be true. If AI playing xanh, this will false
+    playerTwo = False #If human playing do, this will be true. If AI playing do, this will false
 
     while running:
+        humanTurn = (gs.xanhToMove and playerOne) or (not gs.xanhToMove and playerTwo)
+
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             #mouse handler
             elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()  # (x, y) location of mouse
-                col = location[0] // SQ_SIZE 
-                row = location[1] // SQ_SIZE 
-                print("Location of mouse: ", location, " in row, col: ", row, col)
-                #print(location, col, row)
-                #what if user click on two piece THAT FUCKING THE SAME, yes stupid user
-                if pieceSelected == (row, col):
-                    # basically just reset
-                    pieceSelected = ()
-                    playerClicks = [] 
-                else:
-                    pieceSelected = (row, col)
-                    playerClicks.append(pieceSelected)
-                if len(playerClicks) == 2: # after 2nd click
-                    move = CoGanhEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print("Notation ", move.getNotation())
-                    #print("Valid moves: ", validMoves)
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            gs.makeMove(move)
-                            moveMade = True
-                            #reset clicks
-                            pieceSelected = ()
-                            playerClicks = []
-                    if not moveMade:
-                        playerClicks = [pieceSelected]
+                if not gameOver and humanTurn:
+                    location = p.mouse.get_pos()  # (x, y) location of mouse
+                    col = location[0] // SQ_SIZE 
+                    row = location[1] // SQ_SIZE 
+                    print("Location of mouse: ", location, " in row, col: ", row, col)
+                    #print(location, col, row)
+                    #what if user click on two piece THAT FUCKING THE SAME, yes stupid user
+                    if pieceSelected == (row, col):
+                        # basically just reset
+                        pieceSelected = ()
+                        playerClicks = [] 
+                    else:
+                        pieceSelected = (row, col)
+                        playerClicks.append(pieceSelected)
+                    if len(playerClicks) == 2: # after 2nd click
+                        move = CoGanhEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                        print("Notation ", move.getNotation())
+                        #print("Valid moves: ", validMoves)
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                gs.makeMove(move)
+                                moveMade = True
+                                #reset clicks
+                                pieceSelected = ()
+                                playerClicks = []
+                        if not moveMade:
+                            playerClicks = [pieceSelected]
 
                     
             #key handler
@@ -87,9 +92,16 @@ def main():
                     gs.undoMove()
                     moveMade = True
         
+        # AI agent (move finder)
+        if not gameOver and not humanTurn:
+            AIMove = SmartMoveFinder.findRandomMove(validMoves)
+            gs.makeMove(AIMove)
+            moveMade = True
+
         if moveMade == True:
             validMoves = gs.getValidMoves()
             moveMade = False
+
         drawGameState(screen, gs)
 
         if gs.isGameOver():
