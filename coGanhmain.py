@@ -1,4 +1,4 @@
-"""
+﻿"""
 Handling user input and display current GameState object.
 """
 
@@ -45,6 +45,7 @@ def main():
     playerClicks = [] # keep track of player clicks (two tuple[(5, 4), (4, 6)])
     validMoves = gs.getValidMoves()
     moveMade = False  # Flag var for when a move is made
+    gameOver = False
 
     while running:
         for e in p.event.get():
@@ -90,6 +91,13 @@ def main():
             validMoves = gs.getValidMoves()
             moveMade = False
         drawGameState(screen, gs)
+
+        if gs.isGameOver():
+            gameOver = True 
+            if gs.xanhToMove == True:
+                drawText(screen, "Do thang")
+            else:
+                drawText(screen, "Xanh thang")
 
         clock.tick(MAX_FPS)
         p.display.flip()
@@ -147,6 +155,16 @@ def drawPieces(screen, board):
                 (x, y, width, height) = (c*SQ_SIZE + adjust, r*SQ_SIZE + adjust, PIECE_SIZE, PIECE_SIZE)
         
                 screen.blit(IMAGES[piece], (x, y, width, height))
+
+
+'''
+Draw text print on the screen
+'''
+def drawText(screen, text):
+    font = p.font.SysFont("Helvitca", 64, True, False)
+    textObject = font.render(text, 1, p.Color("White"))
+    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH/2 - textObject.get_width()/2, HEIGHT/2 - textObject.get_height()/2)
+    screen.blit(textObject, textLocation)
 
 if __name__ == "__main__":
     main()
